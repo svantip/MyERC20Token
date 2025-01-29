@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="hr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Token Interakcija</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  </head>
+  <body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9">
+    <div
+      style="
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      "
+    >
+      <h1 style="text-align: center; color: #333">Token Interakcija</h1>
+      <div style="margin-bottom: 20px; text-align: center">
+        <button
+          id="connectButton"
+          style="
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+          "
+        >
+          Poveži se s Walletom
+        </button>
+        <p><strong>Trenutno povezano:</strong> <span id="currentAddress">Niste povezani</span></p>
+      </div>
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0" />
+      <h2 style="color: #555">Token informacije</h2>
+      <button
+        id="getInfoButton"
+        style="
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 4px;
+        "
+      >
+        Prikaži informacije o tokenu
+      </button>
+      <ul style="list-style: none; padding: 0; margin-top: 10px">
+        <li>Ime: <span id="tokenName">N/A</span></li>
+        <li>Simbol: <span id="tokenSymbol">N/A</span></li>
+        <li>Decimals: <span id="tokenDecimals">N/A</span></li>
+        <li>Ukupno u opticaju: <span id="tokenTotalSupply">N/A</span></li>
+      </ul>
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0" />
+      <h2 style="color: #555">Provjeri balans</h2>
+      <input
+        type="text"
+        id="balanceAddress"
+        placeholder="Unesite adresu"
+        style="
+          padding: 8px;
+          width: calc(100% - 20px);
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          margin-bottom: 10px;
+        "
+      />
+      <button
+        id="checkBalanceButton"
+        style="
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #007bff;
+          color: white;
+          border: none;
+          border-radius: 4px;
+        "
+      >
+        Provjeri
+      </button>
+      <p>Balans: <span id="balanceResult">N/A</span></p>
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0" />
+      <h2 style="color: #555">Transfer</h2>
+      <input
+        type="text"
+        id="transferTo"
+        placeholder="0x..."
+        style="
+          padding: 8px;
+          width: calc(100% - 20px);
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          margin-bottom: 10px;
+        "
+      />
+      <input
+        type="number"
+        id="transferAmount"
+        placeholder="100"
+        style="
+          padding: 8px;
+          width: calc(100% - 20px);
+          border: 1px solid #ddd;
+          border-radius: 4px;
+          margin-bottom: 10px;
+        "
+      />
+      <button
+        id="transferButton"
+        style="
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #28a745;
+          color: white;
+          border: none;
+          border-radius: 4px;
+        "
+      >
+        Pošalji
+      </button>
+      <p id="transferStatus">N/A</p>
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0" />
+      <h2 style="color: #555">Vlasnik ugovora</h2>
+      <button
+        id="getOwnerButton"
+        style="
+          padding: 8px 16px;
+          font-size: 14px;
+          cursor: pointer;
+          background-color: #17a2b8;
+          color: white;
+          border: none;
+          border-radius: 4px;
+        "
+      >
+        Dohvati vlasnika ugovora
+      </button>
+      <p><strong>Vlasnik:</strong> <span id="ownerAddress">N/A</span></p>
+    </div>
+    <script>
+      // ABI Ugovora
+      const abi = [];
+      // Adresa Ugovora
+      const contractAddress = "";
+      let provider, signer, contract;
+      async function connectWallet() {
+        if (window.ethereum) {
+          try {
+            const accounts = await window.ethereum.request({ method: "eth_requestAccounts" });
+            provider = new ethers.providers.Web3Provider(window.ethereum);
+            signer = provider.getSigner();
+            currentAddressEl.textContent = await signer.getAddress();
+            contract = new ethers.Contract(contractAddress, abi, signer);
+          } catch (err) {
+            console.error("Greška pri povezivanju s Metamask:", err);
+          }
+        } else {
+          alert("Metamask nije pronađen!");
+        }
+      }
+      async function getTokenInfo() {
+        try {
+          tokenNameEl.textContent = await contract.name();
+          tokenSymbolEl.textContent = await contract.symbol();
+          tokenDecimalsEl.textContent = await contract.decimals();
+          tokenTotalSupplyEl.textContent = (await contract.totalSupply()).toString();
+        } catch (err) {
+          console.error("Pogreška pri dohvaćanju token informacija:", err);
+        }
+      }
+      async function checkBalance() {
+        try {
+          balanceResultEl.textContent = (
+            await contract.balanceOf(balanceAddressEl.value)
+          ).toString();
+        } catch (err) {
+          console.error("Pogreška pri dohvaćanju balansa:", err);
+        }
+      }
+      async function transferTokens() {
+        try {
+          const tx = await contract.transfer(transferToEl.value, transferAmountEl.value);
+          transferStatusEl.textContent = "Slanje transakcije...";
+          await tx.wait();
+          transferStatusEl.textContent = "Transakcija uspješna!";
+        } catch (err) {
+          console.error("Greška pri transferu:", err);
+        }
+      }
+      async function getOwner() {
+        try {
+          ownerAddressEl.textContent = await contract.owner();
+        } catch (err) {
+          console.error("Pogreška pri dohvaćanju vlasnika ugovora:", err);
+        }
+      }
+      connectButton.addEventListener("click", connectWallet);
+      getInfoButton.addEventListener("click", getTokenInfo);
+      checkBalanceBtn.addEventListener("click", checkBalance);
+      transferButton.addEventListener("click", transferTokens);
+      getOwnerButton.addEventListener("click", getOwner);
+    </script>
+  </body>
+</html>
