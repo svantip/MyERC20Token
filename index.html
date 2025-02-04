@@ -145,11 +145,216 @@
       <p><strong>Vlasnik:</strong> <span id="ownerAddress">N/A</span></p>
     </div>
     <script>
-      // ABI Ugovora
-      const abi = [];
-      // Adresa Ugovora
-      const contractAddress = "";
+      const connectButton = document.getElementById("connectButton");
+      const getInfoButton = document.getElementById("getInfoButton");
+      const checkBalanceButton = document.getElementById("checkBalanceButton");
+      const transferButton = document.getElementById("transferButton");
+      const getOwnerButton = document.getElementById("getOwnerButton");
+
+      const currentAddressEl = document.getElementById("currentAddress");
+      const tokenNameEl = document.getElementById("tokenName");
+      const tokenSymbolEl = document.getElementById("tokenSymbol");
+      const tokenDecimalsEl = document.getElementById("tokenDecimals");
+      const tokenTotalSupplyEl = document.getElementById("tokenTotalSupply");
+      const balanceAddressEl = document.getElementById("balanceAddress");
+      const balanceResultEl = document.getElementById("balanceResult");
+      const transferToEl = document.getElementById("transferTo");
+      const transferAmountEl = document.getElementById("transferAmount");
+      const transferStatusEl = document.getElementById("transferStatus");
+      const ownerAddressEl = document.getElementById("ownerAddress");
+
+      // ABI i adresa ugovora
+      const abi = [
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "burn",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "mint",
+          outputs: [],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              internalType: "uint256",
+              name: "amount",
+              type: "uint256",
+            },
+          ],
+          name: "transfer",
+          outputs: [
+            {
+              internalType: "bool",
+              name: "",
+              type: "bool",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "function",
+        },
+        {
+          inputs: [
+            {
+              internalType: "string",
+              name: "_name",
+              type: "string",
+            },
+            {
+              internalType: "string",
+              name: "_symbol",
+              type: "string",
+            },
+            {
+              internalType: "uint8",
+              name: "_decimals",
+              type: "uint8",
+            },
+            {
+              internalType: "uint256",
+              name: "_initialSupply",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "nonpayable",
+          type: "constructor",
+        },
+        {
+          anonymous: false,
+          inputs: [
+            {
+              indexed: true,
+              internalType: "address",
+              name: "from",
+              type: "address",
+            },
+            {
+              indexed: true,
+              internalType: "address",
+              name: "to",
+              type: "address",
+            },
+            {
+              indexed: false,
+              internalType: "uint256",
+              name: "value",
+              type: "uint256",
+            },
+          ],
+          name: "Transfer",
+          type: "event",
+        },
+        {
+          inputs: [
+            {
+              internalType: "address",
+              name: "account",
+              type: "address",
+            },
+          ],
+          name: "balanceOf",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "decimals",
+          outputs: [
+            {
+              internalType: "uint8",
+              name: "",
+              type: "uint8",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "name",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "owner",
+          outputs: [
+            {
+              internalType: "address",
+              name: "",
+              type: "address",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "symbol",
+          outputs: [
+            {
+              internalType: "string",
+              name: "",
+              type: "string",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+        {
+          inputs: [],
+          name: "totalSupply",
+          outputs: [
+            {
+              internalType: "uint256",
+              name: "",
+              type: "uint256",
+            },
+          ],
+          stateMutability: "view",
+          type: "function",
+        },
+      ];
+      const contractAddress = "0xb36E655956a853e98993a96acF10DbcB9a798D02";
+
       let provider, signer, contract;
+
       async function connectWallet() {
         if (window.ethereum) {
           try {
@@ -165,6 +370,7 @@
           alert("Metamask nije pronađen!");
         }
       }
+
       async function getTokenInfo() {
         try {
           tokenNameEl.textContent = await contract.name();
@@ -175,6 +381,7 @@
           console.error("Pogreška pri dohvaćanju token informacija:", err);
         }
       }
+
       async function checkBalance() {
         try {
           balanceResultEl.textContent = (
@@ -184,6 +391,7 @@
           console.error("Pogreška pri dohvaćanju balansa:", err);
         }
       }
+
       async function transferTokens() {
         try {
           const tx = await contract.transfer(transferToEl.value, transferAmountEl.value);
@@ -194,6 +402,7 @@
           console.error("Greška pri transferu:", err);
         }
       }
+
       async function getOwner() {
         try {
           ownerAddressEl.textContent = await contract.owner();
@@ -201,9 +410,10 @@
           console.error("Pogreška pri dohvaćanju vlasnika ugovora:", err);
         }
       }
+
       connectButton.addEventListener("click", connectWallet);
       getInfoButton.addEventListener("click", getTokenInfo);
-      checkBalanceBtn.addEventListener("click", checkBalance);
+      checkBalanceButton.addEventListener("click", checkBalance);
       transferButton.addEventListener("click", transferTokens);
       getOwnerButton.addEventListener("click", getOwner);
     </script>
